@@ -22,6 +22,7 @@ export default function Customer() {
         setCustomer(data.customer);
       });
   }, []);
+
   return (
     <>
       {notFound ? <p>The customer with id {id} was not found.</p> : null}
@@ -33,6 +34,29 @@ export default function Customer() {
           <p> {customer.industry}</p>
         </div>
       ) : null}
+      <button
+        onClick={(e) => {
+          const url = baseUrl + "api/customers/" + id;
+          fetch(url, {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          })
+            .then((response) => {
+              if (!response.ok) {
+                throw new Error("Something went wrong");
+              }
+              navigate("/customers");
+            })
+            .catch((e) => {
+              console.log(e);
+            });
+        }}
+      >
+        Delete
+      </button>
+      <br />
       <Link to="customers">Go Back</Link>
     </>
   );
