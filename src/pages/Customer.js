@@ -7,7 +7,16 @@ export default function Customer() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [customer, setCustomer] = useState();
+  const [tempCustomer, setTempCustomer] = useState();
   const [notFound, setNotFound] = useState();
+  const [changed, setChanged] = useState(false);
+
+  useEffect(() => {
+    console.log("customer", customer);
+    console.log("tempCustomer", tempCustomer);
+    console.log(changed);
+  });
+
   useEffect(() => {
     const url = baseUrl + "/api/customers/" + id;
     fetch(url)
@@ -20,6 +29,7 @@ export default function Customer() {
       })
       .then((data) => {
         setCustomer(data.customer);
+        setTempCustomer(data.customer);
       });
   }, []);
 
@@ -29,9 +39,37 @@ export default function Customer() {
 
       {customer ? (
         <div>
-          <p> {customer.id}</p>
-          <p> {customer.name}</p>
-          <p> {customer.industry}</p>
+          <input
+            className="m-2 block px-2"
+            type="text"
+            value={tempCustomer.name}
+            onChange={(e) => {
+              setChanged(true);
+              setTempCustomer({ ...tempCustomer, name: e.target.value });
+            }}
+          />
+          <input
+            className="m-2 block px-2"
+            type="text"
+            value={tempCustomer.industry}
+            onChange={(e) => {
+              setChanged(true);
+              setTempCustomer({ ...tempCustomer, industry: e.target.value });
+            }}
+          />
+          {changed ? (
+            <>
+              <button
+                onClick={(e) => {
+                  setTempCustomer({ ...customer });
+                  setChanged(false)
+                }}
+              >
+                Cancel
+              </button>{" "}
+              <button>Save</button>
+            </>
+          ) : null}
         </div>
       ) : null}
       <button
