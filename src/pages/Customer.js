@@ -10,11 +10,17 @@ export default function Customer() {
   const [tempCustomer, setTempCustomer] = useState();
   const [notFound, setNotFound] = useState();
   const [changed, setChanged] = useState(false);
+  const [error, setError] = useState();
 
   useEffect(() => {
-    console.log("customer", customer);
-    console.log("tempCustomer", tempCustomer);
-    console.log(changed);
+    if (!customer) return;
+    if (!tempCustomer) return;
+    let equal = true;
+
+    if (customer.name !== tempCustomer.name) equal = false;
+    if (customer.industry !== tempCustomer.industry) equal = false;
+
+    if (equal) setChanged(false);
   });
 
   useEffect(() => {
@@ -32,6 +38,32 @@ export default function Customer() {
         setTempCustomer(data.customer);
       });
   }, []);
+
+  function updateCustomer() {
+    const url = baseUrl + "api/customers/" + id;
+    fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(tempCustomer),
+    })
+      .then((response) => {
+        console.log("response: ", response);
+        if (!response.ok) throw new Error("something went wrong");
+        return response.json();
+      })
+      .then((data) => {
+        setCustomer(data.customer);
+        setChanged(false);
+        console.log(data);
+        setError(undefined);
+      })
+      .catch((e) => {
+        console.log("Error: ", e);
+        setError(e.message);
+      });
+  }
 
   return (
     <>
@@ -60,40 +92,45 @@ export default function Customer() {
           {changed ? (
             <>
               <button
+                className="m-2"
                 onClick={(e) => {
                   setTempCustomer({ ...customer });
-                  setChanged(false)
+                  setChanged(false);
                 }}
               >
                 Cancel
-              </button>{" "}
-              <button>Save</button>
+              </button>
+              <button className="m-2" onClick={updateCustomer}>
+                Save
+              </button>
             </>
           ) : null}
+
+          <button
+            onClick={(e) => {
+              const url = baseUrl + "api/customers/" + id;
+              fetch(url, {
+                method: "DELETE",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+              })
+                .then((response) => {
+                  if (!response.ok) {
+                    throw new Error("Something went wrong");
+                  }
+                  navigate("/customers");
+                })
+                .catch((e) => {
+                  console.log(e);
+                });
+            }}
+          >
+            Delete
+          </button>
+          {error ? <p>{error}</p> : null}
         </div>
       ) : null}
-      <button
-        onClick={(e) => {
-          const url = baseUrl + "api/customers/" + id;
-          fetch(url, {
-            method: "DELETE",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          })
-            .then((response) => {
-              if (!response.ok) {
-                throw new Error("Something went wrong");
-              }
-              navigate("/customers");
-            })
-            .catch((e) => {
-              console.log(e);
-            });
-        }}
-      >
-        Delete
-      </button>
       <br />
       <Link to="customers">Go Back</Link>
     </>
